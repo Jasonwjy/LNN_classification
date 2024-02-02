@@ -35,6 +35,8 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 loss_list = []
+train_acc = []
+val_acc = []
 
 for epoch in range(train_epoches):
     train_loss, train_count = 0, 0
@@ -80,8 +82,20 @@ for epoch in range(train_epoches):
 
     torch.save(model.state_dict(), 'save_model/model_after_epoch{}.model'.format(epoch))
 
+    train_acc.append(n_train_correct/n_train_samples)
+    val_acc.append(n_val_correct/n_val_samples)
     print('train_acc:', n_train_correct/n_train_samples)
     print('val_acc:', n_val_correct/n_val_samples)
+
+plt.plot(loss_list)
+plt.savefig('loss.png', format='png', dpi=300)
+plt.clf()
+plt.plot(train_acc)
+plt.savefig('train_acc.png', format='png', dpi=300)
+plt.clf()
+plt.plot(val_acc)
+plt.savefig('val_acc.png', format='png', dpi=300)
+plt.clf()
 
 
 
