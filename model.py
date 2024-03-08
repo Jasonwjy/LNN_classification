@@ -46,7 +46,31 @@ class LTC1(nn.Module):
 
         return out
 
+class CNN(nn.Module):
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 16, 3)  # in channels, output channels, kernel size
+        self.conv2 = nn.Conv2d(16, 32, 3, padding=2, stride=2)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.conv3 = nn.Conv2d(32, 64, 5, padding=2, stride=2)
+        self.conv4 = nn.Conv2d(64, 128, 5, padding=2, stride=2)
+        self.bn4 = nn.BatchNorm2d(128)
 
+        self.fc1 = nn.Linear(512, 256) # 输入特征大小为 128 * 2 * 2，输出特征大小为 512
+        self.fc2 = nn.Linear(256, 2) # 输入特征大小为 512，输出特征大小为 256
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.conv3(x))
+        x = F.max_pool2d(F.relu(self.bn4(self.conv4(x))), (2, 2))
+
+        x = x.view(x.size(0), -1)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+#这个LNN是原作者（LNN_cancer_classification项目）里用的模型
 class LNN(nn.Module):
     def __init__(self, ncp_input_size, hidden_size, num_classes, sequence_length):
         super(LNN, self).__init__()

@@ -22,10 +22,10 @@ model.py包括一些模型，比如LTC1，后续可能会添加其他模型作�
 
 ## 训练结果
 ### train_loss
-![](loss.png "loss")
+![](LTC_loss.png)
 
 ### train_acc
-![](train_acc.png)
+![](LTC_train_acc.png)
 
 ## 杂项
 
