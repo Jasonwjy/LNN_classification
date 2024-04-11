@@ -22,7 +22,7 @@ transform = transforms.Compose([
 ])
 
 # 加载数据集
-test_dataset = ImageFolder(root='train_data', transform=transform)
+test_dataset = ImageFolder(root='test_data', transform=transform)
 test_data_loader = DataLoader(test_dataset, batch_size=16, shuffle=True)
 
 model = LTC1()
@@ -30,7 +30,7 @@ model = model.to(device)
 
 acc_list = []
 
-for i in range(10):
+for i in range(25):
     checkpoint = torch.load('save_model/LTC/model_after_epoch{}.model'.format(i))
     model.load_state_dict(checkpoint)
 
@@ -50,4 +50,5 @@ for i in range(10):
     acc_list.append(epoch_correct)
 
 plt.plot(acc_list)
+plt.savefig('LTC_test_acc.png', format='png', dpi=300)
 plt.show()

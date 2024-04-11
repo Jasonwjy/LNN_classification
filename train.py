@@ -28,7 +28,7 @@ data_loader = DataLoader(dataset, batch_size=16, shuffle=True)
 val_set = ImageFolder(root='val_data', transform=transform)
 val_loader = DataLoader(val_set, batch_size=16, shuffle=True)
 
-train_epoches = 10
+train_epoches = 25
 model = LTC1()
 model = model.to(device)
 criterion = nn.CrossEntropyLoss()
