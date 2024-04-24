@@ -8,47 +8,67 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-from model import LTC1, CNN
-import time
+from model import *
+from sklearn.metrics import f1_score
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Using device: ", device)
 
+epoches = 25
+input_size = 32
+model_name = 'ResNet_LTC'
+
 # 图像转换为1*28*28的Tensor
 transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
-    transforms.Resize((28, 28)),
+    transforms.Resize((input_size, input_size)),
     transforms.ToTensor()
 ])
 
 # 加载数据集
-test_dataset = ImageFolder(root='test_data', transform=transform)
+test_dataset = ImageFolder(root='data/test', transform=transform)
 test_data_loader = DataLoader(test_dataset, batch_size=16, shuffle=True)
 
-model = LTC1()
+model = ResNet_LTC(in_channels=1)
 model = model.to(device)
 
 acc_list = []
+f1_list = []
 
-for i in range(25):
-    checkpoint = torch.load('save_model/LTC/model_after_epoch{}.model'.format(i))
+for i in range(epoches):
+    checkpoint = torch.load('save_model/{}/model_after_epoch{}.model'.format(model_name, i))
     model.load_state_dict(checkpoint)
 
     model.eval()
     n_correct = 0
     n_total = 0
+    y_true = []
+    y_pred = []
 
-    for x, label in tqdm(test_data_loader, desc='testing epoch {}'.format(i)):
+    for x, label in tqdm(test_data_loader, desc='testing epoch {}'.format(i), unit='batch'):
         x = x.to(device)
         label = label.to(device)
         pred = model(x)
-        predicted = torch.argmax(pred.data, 1)
+        # predicted = torch.argmax(pred.data, 1)
+        predicted = pred.data
+        predicted = (predicted > 0)
         n_correct += ((predicted == label).sum().item())
         n_total += x.size(0)
+        y_true.extend(label.cpu().numpy())
+        y_pred.extend(predicted.cpu().numpy())
 
     epoch_correct = n_correct / n_total
     acc_list.append(epoch_correct)
+    y_pred = np.array(y_pred)
+    y_pred_int = (y_pred > 0).astype(int)
+    f1 = f1_score(y_true, y_pred_int)
+    f1_list.append(f1)
+    print('\ntesting epoch: {}, accuracy: {}, F1_score: {}'.format(i, epoch_correct, f1))
 
 plt.plot(acc_list)
-plt.savefig('LTC_test_acc.png', format='png', dpi=300)
+plt.savefig('plots/{}_test_acc.png'.format(model_name), format='png', dpi=300)
+plt.clf()
+plt.plot(f1_list)
+plt.savefig('plots/{}_test_F1.png'.format(model_name), format='png', dpi=300)
 plt.show()

@@ -12,15 +12,15 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-from model import CNN
+from model import CNN, CNN1
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Using device: ", device)
 
-# 图像转换为1*28*28的Tensor
+# 图像转换为1*128*128的Tensor
 transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
-    transforms.Resize((28, 28)),
+    transforms.Resize((120, 120)),
     transforms.ToTensor()
 ])
 
@@ -29,68 +29,75 @@ dataset = ImageFolder(root='train_data', transform=transform)
 data_loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
 #加载验证集
-val_set = ImageFolder(root='val_data', transform=transform)
-val_loader = DataLoader(val_set, batch_size=16, shuffle=True)
+# val_set = ImageFolder(root='val_data', transform=transform)
+# val_loader = DataLoader(val_set, batch_size=16, shuffle=True)
 
 train_epoches = 25
-model = CNN()
+model = CNN1()
 model = model.to(device)
-criterion = nn.CrossEntropyLoss()
+# criterion = nn.CrossEntropyLoss()
+criterion = nn.BCELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 loss_list = []
 train_acc = []
-val_acc = []
+# val_acc = []
 
 for epoch in range(train_epoches):
     train_loss, train_count = 0, 0
     n_train_correct, n_train_samples = 0, 0
     n_val_correct, n_val_samples = 0, 0
+    epoch_loss = []
 
     #训练
     model.train()
     for x, label in tqdm(data_loader, unit='batch', desc='Running epoch {}'.format(epoch)):
         x = x.to(device)
+        label = label.float()
         label = label.to(device)
 
-        label = label.squeeze().long()
+        # label = label.squeeze().long()
 
         #前向传播，计算误差
         output = model(x)
+        output = output.squeeze(dim=-1)
         loss = criterion(output, label)
 
         #记录当前批次的loss,acc
         loss_list.append(loss.item())
-        predicted = torch.argmax(output.data, 1)
+        epoch_loss.append(loss.item())
+        # predicted = torch.argmax(output.data, 1)
+        print(output.data)
         n_train_samples += label.size(0)
-        n_train_correct += (predicted == label).sum().item()
+        # n_train_correct += (predicted == label).sum().item()
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
     #验证
-    model.eval()
-    for images, labels in val_loader:
-        images = images.to(device)
-        labels = labels.to(device)
-        labels = labels.squeeze().long()
-
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-
-        predicted = torch.argmax(outputs.data, 1)
-
-        n_val_samples += labels.size(0)
-        n_val_correct += (predicted == labels).sum().item()
+    # model.eval()
+    # for images, labels in val_loader:
+    #     images = images.to(device)
+    #     labels = labels.to(device)
+    #     labels = labels.squeeze().long()
+    #
+    #     outputs = model(images)
+    #     loss = criterion(outputs, labels)
+    #
+    #     predicted = torch.argmax(outputs.data, 1)
+    #
+    #     n_val_samples += labels.size(0)
+    #     n_val_correct += (predicted == labels).sum().item()
 
     if not os.path.exists('save_model/CNN'):
         os.mkdir('save_model/CNN')
     torch.save(model.state_dict(), 'save_model/CNN/model_after_epoch{}.model'.format(epoch))
 
     train_acc.append(n_train_correct/n_train_samples)
-    val_acc.append(n_val_correct/n_val_samples)
+    # val_acc.append(n_val_correct/n_val_samples)
     print('train_acc:', n_train_correct/n_train_samples)
-    print('val_acc:', n_val_correct/n_val_samples)
+    # print('val_acc:', n_val_correct/n_val_samples)
+    print('epoch_loss:', sum(epoch_loss)/len(epoch_loss))
 
 plt.plot(loss_list)
 plt.savefig('CNN_loss.png', format='png', dpi=300)
@@ -98,13 +105,7 @@ plt.clf()
 plt.plot(train_acc)
 plt.savefig('CNN_train_acc.png', format='png', dpi=300)
 plt.clf()
-plt.plot(val_acc)
-plt.savefig('CNN_val_acc.png', format='png', dpi=300)
-plt.clf()
-
-
-
-
-
-
+# plt.plot(val_acc)
+# plt.savefig('CNN_val_acc.png', format='png', dpi=300)
+# plt.clf()
 

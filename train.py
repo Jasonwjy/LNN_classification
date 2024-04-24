@@ -8,98 +8,85 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-from model import LTC1
+from model import *
 
+# 配置训练参数
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Using device: ", device)
+train_epoches = 25
+
+# ResNet对应的model和criterion
+# model = ResNet(in_channels=1)
+# model = model.to(device)
+# criterion = nn.BCEWithLogitsLoss()
+# model_name = 'ResNet'
+# input_size = 32
+
+# ResNet_LTC 对应的model和criterion
+model = ResNet_LTC(in_channels=1)
+model = model.to(device)
+criterion = nn.BCEWithLogitsLoss()
+model_name = 'ResNet_LTC'
+input_size = 32
+
+
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 # 图像转换为1*28*28的Tensor
 transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
-    transforms.Resize((28, 28)),
+    transforms.Resize((input_size, input_size)),
     transforms.ToTensor()
 ])
 
 # 加载数据集
-dataset = ImageFolder(root='train_data', transform=transform)
+dataset = ImageFolder(root='./data/train', transform=transform)
 data_loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
 #加载验证集
-val_set = ImageFolder(root='val_data', transform=transform)
+val_set = ImageFolder(root='./data/val', transform=transform)
 val_loader = DataLoader(val_set, batch_size=16, shuffle=True)
 
-train_epoches = 25
-model = LTC1()
-model = model.to(device)
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+train_loss_list = []
+train_acc_list = []
 
-loss_list = []
-train_acc = []
-val_acc = []
 
 for epoch in range(train_epoches):
     train_loss, train_count = 0, 0
+    train_acc = 0
     n_train_correct, n_train_samples = 0, 0
     n_val_correct, n_val_samples = 0, 0
 
-    #训练
     model.train()
     for x, label in tqdm(data_loader, unit='batch', desc='Running epoch {}'.format(epoch)):
         x = x.to(device)
-        label = label.to(device)
+        label = label.to(device).to(torch.float)
 
-        label = label.squeeze().long()
-
-        #前向传播，计算误差
+        # 前向传播，计算误差
         output = model(x)
         loss = criterion(output, label)
-
-        #记录当前批次的loss,acc
-        loss_list.append(loss.item())
-        predicted = torch.argmax(output.data, 1)
-        n_train_samples += label.size(0)
-        n_train_correct += (predicted == label).sum().item()
-
+        train_loss += loss.item()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        y_pred = torch.round(torch.sigmoid(output))
+        train_acc += (y_pred == label).sum().item() / len(label)
 
-    #验证
-    model.eval()
-    for images, labels in val_loader:
-        images = images.to(device)
-        labels = labels.to(device)
-        labels = labels.squeeze().long()
 
-        outputs = model(images)
-        loss = criterion(outputs, labels)
+    train_loss /= len(data_loader)
+    train_acc /= len(data_loader)
 
-        predicted = torch.argmax(outputs.data, 1)
+    train_loss_list.append(train_loss)
+    train_acc_list.append(train_acc)
 
-        n_val_samples += labels.size(0)
-        n_val_correct += (predicted == labels).sum().item()
+    print('\ntrain epoch :{}, train_loss :{}, train_acc :{}'.format(epoch, train_loss, train_acc))
+    if not os.path.exists('save_model/{}'.format(model_name)):
+        os.mkdir('save_model/{}'.format(model_name))
+    torch.save(model.state_dict(), 'save_model/{}/model_after_epoch{}.model'.format(model_name, epoch))
 
-    torch.save(model.state_dict(), 'save_model/LTC/model_after_epoch{}.model'.format(epoch))
-
-    train_acc.append(n_train_correct/n_train_samples)
-    val_acc.append(n_val_correct/n_val_samples)
-    print('train_acc:', n_train_correct/n_train_samples)
-    print('val_acc:', n_val_correct/n_val_samples)
-
-plt.plot(loss_list)
-plt.savefig('LTC_loss.png', format='png', dpi=300)
+plt.plot(train_loss_list)
+plt.savefig('plots/{}_train_loss.png'.format(model_name), format='png', dpi=300)
 plt.clf()
-plt.plot(train_acc)
-plt.savefig('LTC_train_acc.png', format='png', dpi=300)
+plt.plot(train_acc_list)
+plt.savefig('plots/{}_train_acc.png'.format(model_name), format='png', dpi=300)
 plt.clf()
-plt.plot(val_acc)
-plt.savefig('LTC_val_acc.png', format='png', dpi=300)
-plt.clf()
-
-
-
-
-
-
-
