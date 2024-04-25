@@ -13,9 +13,10 @@ from model import *
 # 配置训练参数
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Using device: ", device)
-train_epoches = 25
+train_epoches = 50
 
 # ResNet对应的model和criterion
+
 # model = ResNet(in_channels=1)
 # model = model.to(device)
 # criterion = nn.BCEWithLogitsLoss()
@@ -23,12 +24,20 @@ train_epoches = 25
 # input_size = 32
 
 # ResNet_LTC 对应的model和criterion
-model = ResNet_LTC(in_channels=1)
-model = model.to(device)
-criterion = nn.BCEWithLogitsLoss()
-model_name = 'ResNet_LTC'
-input_size = 32
 
+# model = ResNet_LTC(in_channels=1)
+# model = model.to(device)
+# criterion = nn.BCEWithLogitsLoss()
+# model_name = 'ResNet_LTC'
+# input_size = 32
+
+# CNN 对应的model和criterion
+
+model = CNN()
+model = model.to(device)
+criterion = nn.CrossEntropyLoss()
+model_name = 'CNN'
+input_size = 128
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -60,16 +69,23 @@ for epoch in range(train_epoches):
     model.train()
     for x, label in tqdm(data_loader, unit='batch', desc='Running epoch {}'.format(epoch)):
         x = x.to(device)
-        label = label.to(device).to(torch.float)
+        if model_name in ['ResNet', 'ResNet_LTC']:
+            label = label.to(device).to(torch.float)
+        else:
+            label = label.to(device)
 
         # 前向传播，计算误差
         output = model(x)
+
         loss = criterion(output, label)
         train_loss += loss.item()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        y_pred = torch.round(torch.sigmoid(output))
+        if model_name in ['ResNet', 'ResNet_LTC']:
+            y_pred = torch.round(torch.sigmoid(output))
+        else:
+            y_pred = torch.argmax(output.data, 1)
         train_acc += (y_pred == label).sum().item() / len(label)
 
 
