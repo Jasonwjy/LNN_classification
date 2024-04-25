@@ -265,6 +265,8 @@ class ResNet_LTC(nn.Module):
         self.wiring = AutoNCP(28, 1)
         self.rnn = CfC(16, self.wiring)
 
+        make_wiring_diagram(self.wiring, "kamada")
+
 
         # self.classifier = nn.Sequential(nn.MaxPool2d(3),
         #                                 nn.Flatten(),

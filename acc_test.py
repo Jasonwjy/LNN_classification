@@ -15,9 +15,9 @@ from sklearn.metrics import f1_score
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Using device: ", device)
 
-epoches = 50
-input_size = 128
-model_name = 'CNN'
+epoches = 25
+input_size = 32
+model_name = 'ResNet_LTC'
 
 # 图像转换为1*28*28的Tensor
 transform = transforms.Compose([
@@ -30,8 +30,8 @@ transform = transforms.Compose([
 test_dataset = ImageFolder(root='data/test', transform=transform)
 test_data_loader = DataLoader(test_dataset, batch_size=16, shuffle=True)
 
-# model = ResNet_LTC(in_channels=1)
-model = CNN()
+model = ResNet_LTC(in_channels=1)
+# model = CNN()
 model = model.to(device)
 
 acc_list = []
@@ -71,8 +71,10 @@ for i in range(epoches):
     print('\ntesting epoch: {}, accuracy: {}, F1_score: {}'.format(i, epoch_correct, f1))
 
 plt.plot(acc_list)
+plt.ylim(0.0, 1.0)
 plt.savefig('plots/{}_test_acc.png'.format(model_name), format='png', dpi=300)
 plt.clf()
 plt.plot(f1_list)
+plt.ylim(0.0, 1.0)
 plt.savefig('plots/{}_test_F1.png'.format(model_name), format='png', dpi=300)
 plt.show()

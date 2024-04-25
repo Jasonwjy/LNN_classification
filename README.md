@@ -45,6 +45,9 @@ model.py包括一些模型，比如LTC1，后续可能会添加其他模型作�
 ### CNN Train_loss
 ![](plots/CNN_train_loss.png)
 
+### CNN Test_acc
+![](plots/CNN_test_acc.png)
+
 ### RenNet_LTC Train_loss
 ![](plots/ResNet_LTC_train_loss.png)
 
@@ -53,7 +56,7 @@ model.py包括一些模型，比如LTC1，后续可能会添加其他模型作�
 
 ### ResNet_LTC Test_F1
 ![](plots/ResNet_LTC_test_F1.png)
-  虽然测试集上得到的F1score仍然出现波动，但是波动幅度在0.82至0.9之间，相比CNN_model的F1_score波动，属于可以接受的幅度
+  虽然测试集上得到的F1_score仍然出现波动，但是波动幅度在0.82至0.9之间，相比CNN_model的F1_score波动，属于可以接受的幅度
 
 
 
