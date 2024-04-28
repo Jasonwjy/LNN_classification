@@ -265,7 +265,8 @@ class ResNet_LTC(nn.Module):
         self.wiring = AutoNCP(28, 1)
         self.rnn = CfC(16, self.wiring)
 
-        make_wiring_diagram(self.wiring, "kamada")
+        # 这行代码是用来绘制模型内部连接结构的
+        # make_wiring_diagram(self.wiring, "kamada")
 
 
         # self.classifier = nn.Sequential(nn.MaxPool2d(3),

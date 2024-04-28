@@ -9,22 +9,24 @@ from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 from model import *
+import csv
 
 # 配置训练参数
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Using device: ", device)
-train_epoches = 50
 
 # ResNet对应的model和criterion
 
-# model = ResNet(in_channels=1)
-# model = model.to(device)
-# criterion = nn.BCEWithLogitsLoss()
-# model_name = 'ResNet'
-# input_size = 32
+train_epoches = 25
+model = ResNet(in_channels=1)
+model = model.to(device)
+criterion = nn.BCEWithLogitsLoss()
+model_name = 'ResNet'
+input_size = 32
 
 # ResNet_LTC 对应的model和criterion
 
+# train_epoches = 25
 # model = ResNet_LTC(in_channels=1)
 # model = model.to(device)
 # criterion = nn.BCEWithLogitsLoss()
@@ -33,11 +35,12 @@ train_epoches = 50
 
 # CNN 对应的model和criterion
 
-model = CNN()
-model = model.to(device)
-criterion = nn.CrossEntropyLoss()
-model_name = 'CNN'
-input_size = 128
+# train_epoches = 50
+# model = CNN()
+# model = model.to(device)
+# criterion = nn.CrossEntropyLoss()
+# model_name = 'CNN'
+# input_size = 128
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -99,6 +102,13 @@ for epoch in range(train_epoches):
     if not os.path.exists('save_model/{}'.format(model_name)):
         os.mkdir('save_model/{}'.format(model_name))
     torch.save(model.state_dict(), 'save_model/{}/model_after_epoch{}.model'.format(model_name, epoch))
+
+with open('CSV/{}_train_data.csv'.format(model_name), mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(['Epoch', 'Train_loss', 'Train_acc'])
+
+    for i in range(train_epoches):
+        writer.writerow([i+1, train_loss_list[i], train_acc_list[i]])
 
 plt.plot(train_loss_list)
 plt.savefig('plots/{}_train_loss.png'.format(model_name), format='png', dpi=300)

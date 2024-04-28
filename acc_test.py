@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from model import *
 from sklearn.metrics import f1_score
+import csv
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -68,7 +69,14 @@ for i in range(epoches):
     y_pred_int = (y_pred > 0).astype(int)
     f1 = f1_score(y_true, y_pred_int)
     f1_list.append(f1)
-    print('\ntesting epoch: {}, accuracy: {}, F1_score: {}'.format(i, epoch_correct, f1))
+    print('\ntesting epoch: {}, accuracy: {}, F1_score: {}\n'.format(i, epoch_correct, f1))
+
+with open('CSV/{}_test_result.csv'.format(model_name), mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(['Epoch', 'ACC', 'F1_score'])
+
+    for i in range(epoches):
+        writer.writerow([i+1, acc_list[i], f1_list[i]])
 
 plt.plot(acc_list)
 plt.ylim(0.0, 1.0)

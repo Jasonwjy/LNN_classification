@@ -32,12 +32,24 @@ model.py包括一些模型，比如LTC1，后续可能会添加其他模型作�
   + 模型连接方式如下
   ![](plots/LTC_with_28_neurons.png)
 
+
++ 需要再找一两个别的模型做对比
 ------
 
+### 数据集
+
+使用Kaggle的 Chest X-Ray Images数据集进行测试，上文的ResNet 和 ResNet_LTC都是基于该数据集进行训练和测试。
+
+在计划中需要对数据集进行进一步处理，例如使用数据增强方式
+
+
+------
 ### train.py
 
-使用的数据集为Kaggle上的肺炎图像分类数据集，原本包含(NORMAL, PNEUMONIA)两个类别，即二分类问题。优化器使用Adam，损失函数使用BCELoss。
+使用的数据集为Kaggle上的肺炎图像分类数据集，包含(NORMAL, PNEUMONIA)两个类别，即二分类问题。优化器使用Adam，损失函数使用BCELoss。
+
 在代码开头配置训练轮数，模型，输入图像尺寸，损失函数等参数。
+
 训练过程会统计每个epoch的平均loss, 训练集准确率。并在训练完成后保存图表。
 
 ------
