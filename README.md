@@ -63,7 +63,9 @@ model.py包括一些模型，比如LTC1，后续可能会添加其他模型作�
 ### CNN Test_acc
 ![](plots/CNN_test_acc.png)
 
-### RenNet_LTC Train_loss
+CNN模型的训练明显是有问题的，loss和acc曲线都出现了非常严重的振荡，推测是使用的卷积结构不能很好的提取特征，因此出现学习失败。所以后面换了ResNet做测试。
+
+### ResNet_LTC Train_loss
 ![](plots/ResNet_LTC_train_loss.png)
 
 ### ResNET_LTC Test_acc
