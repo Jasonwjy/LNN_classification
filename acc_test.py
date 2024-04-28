@@ -18,7 +18,7 @@ print("Using device: ", device)
 
 epoches = 25
 input_size = 32
-model_name = 'ResNet_LTC'
+model_name = 'ResNet'
 
 # 图像转换为1*28*28的Tensor
 transform = transforms.Compose([
@@ -31,7 +31,8 @@ transform = transforms.Compose([
 test_dataset = ImageFolder(root='data/test', transform=transform)
 test_data_loader = DataLoader(test_dataset, batch_size=16, shuffle=True)
 
-model = ResNet_LTC(in_channels=1)
+model = ResNet(in_channels=1)
+# model = ResNet_LTC(in_channels=1)
 # model = CNN()
 model = model.to(device)
 
