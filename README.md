@@ -38,7 +38,7 @@ model.py包括一些模型，比如LTC1，后续可能会添加其他模型作�
 
 ### 数据集
 
-使用Kaggle的 Chest X-Ray Images数据集进行测试，上文的ResNet 和 ResNet_LTC都是基于该数据集进行训练和测试。
+使用Kaggle的 Chest X-Ray Images (https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia/data) 数据集进行测试，上文的ResNet 和 ResNet_LTC都是基于该数据集进行训练和测试。
 
 在计划中需要对数据集进行进一步处理，例如使用数据增强方式
 
