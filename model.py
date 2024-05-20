@@ -202,6 +202,130 @@ class CNN(nn.Module):
             output = fc(output)
         return output
 
+
+class CNN_LTC(nn.Module):
+    def __init__(self):
+        img_size = 128
+        num_class = 2
+        super(CNN_LTC, self).__init__()
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            # default parameter：nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            nn.ReLU(inplace=True)
+        )
+
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        )
+
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        )
+
+        self.conv5 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv6 = nn.Sequential(
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv7 = nn.Sequential(
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv8 = nn.Sequential(
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        )
+
+        self.conv9 = nn.Sequential(
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv10 = nn.Sequential(
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv11 = nn.Sequential(
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+        )
+        self.conv12 = nn.Sequential(
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        )
+        self.conv13 = nn.Sequential(
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv14 = nn.Sequential(
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv15 = nn.Sequential(
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+        )
+
+        self.conv16 = nn.Sequential(
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        )
+
+        self.conv_list = [self.conv1, self.conv2, self.conv3, self.conv4, self.conv5, self.conv6, self.conv7,
+                          self.conv8, self.conv9, self.conv10, self.conv11, self.conv12, self.conv13, self.conv14,
+                          self.conv15, self.conv16]
+
+        self.wiring = AutoNCP(28, 2)
+        self.rnn = LTC(64, self.wiring)
+
+    def forward(self, x):
+        for conv in self.conv_list:  # 16 CONV
+            x = conv(x)
+        # output = x.view(x.size()[0], -1)
+        output = x.view(-1, 128, 64)
+        h0 = torch.zeros(output.size(0), 28).to(device)  # hidden_size = 28,对应AutoNCP的units
+
+        x, _ = self.rnn(output, h0)
+        x = x[:, -1, :]
+        return x.squeeze()
+
 # kaggle上找了一个resnet的新模型，准确率还可以
 # https://www.kaggle.com/code/kannapat/pneumonia-detection-with-pytorch-81-acc
 # 模型要求 1*32*32 的输入
@@ -251,6 +375,7 @@ class ResNet_LTC(nn.Module):
 
     def __init__(self, in_channels=1):
         super().__init__()
+        self.units = 28
 
         self.conv1 = self.conv_block(in_channels, 16)
         self.conv2 = self.conv_block(16, 32, pool=True)
@@ -262,8 +387,58 @@ class ResNet_LTC(nn.Module):
 
         self.pool = nn.MaxPool2d(3)
 
-        self.wiring = AutoNCP(28, 1)
+        self.wiring = AutoNCP(self.units, 1)
+        self.rnn = LTC(16, self.wiring)
+
+        # 这行代码是用来绘制模型内部连接结构的
+        # make_wiring_diagram(self.wiring, "kamada", model_name='LTC_16_NCP')
+
+
+        # self.classifier = nn.Sequential(nn.MaxPool2d(3),
+        #                                 nn.Flatten(),
+        #                                 nn.Dropout(p=0.5),
+        #                                 nn.Linear(in_features=128,out_features=1))
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.conv2(out)
+        out = self.res1(out) + out
+        out = self.conv3(out)
+        out = self.conv4(out)
+        out = self.res2(out) + out
+        out = self.pool(out)
+        out = out.view(-1, 8, 16)       # seq_length = 8, input_size = 16
+        h0 = torch.zeros(out.size(0), self.units).to(device)  # hidden_size = 28,对应AutoNCP的units
+
+        x, _ = self.rnn(out, h0)
+        x = x[:, -1, :]
+        return x.squeeze()
+
+class ResNet_CFC(nn.Module):
+    def conv_block(self, in_channels, out_channels, pool=False):
+      layers = [nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(inplace=True)]
+      if pool: layers.append(nn.MaxPool2d(2))
+      return nn.Sequential(*layers)
+
+    def __init__(self, in_channels=1):
+        super().__init__()
+        self.units = 28
+
+        self.conv1 = self.conv_block(in_channels, 16)
+        self.conv2 = self.conv_block(16, 32, pool=True)
+        self.res1 = nn.Sequential(self.conv_block(32,32), self.conv_block(32,32))
+
+        self.conv3 = self.conv_block(32, 64, pool=True)
+        self.conv4 = self.conv_block(64, 128, pool=True)
+        self.res2 = nn.Sequential(self.conv_block(128,128), self.conv_block(128,128))
+
+        self.pool = nn.MaxPool2d(3)
+
+        self.wiring = AutoNCP(self.units, 1)
         self.rnn = CfC(16, self.wiring)
+        # self.rnn = CfC(16, units=self.units, )
 
         # 这行代码是用来绘制模型内部连接结构的
         # make_wiring_diagram(self.wiring, "kamada")
@@ -283,7 +458,7 @@ class ResNet_LTC(nn.Module):
         out = self.res2(out) + out
         out = self.pool(out)
         out = out.view(-1, 8, 16)       # seq_length = 8, input_size = 16
-        h0 = torch.zeros(out.size(0), 28).to(device)  # hidden_size = 28,对应AutoNCP的units
+        h0 = torch.zeros(out.size(0), self.units).to(device)  # hidden_size = 28,对应AutoNCP的units
 
         x, _ = self.rnn(out, h0)
         x = x[:, -1, :]
@@ -344,11 +519,11 @@ class LNN(nn.Module):
               :]  # we have 28 outputs since each part of sequence generates an output. for classification, we only want the last one
         return out
 
-def make_wiring_diagram(wiring, layout):
+def make_wiring_diagram(wiring, layout, model_name):
     sns.set_style("white")
     plt.figure(figsize=(12, 12))
     legend_handles = wiring.draw_graph(layout=layout,neuron_colors={"command": "tab:cyan"})
     plt.legend(handles=legend_handles, loc="upper center", bbox_to_anchor=(1, 1))
     sns.despine(left=True, bottom=True)
     plt.tight_layout()
-    plt.show()
+    plt.savefig('plots/{}.png'.format(model_name), format='png', dpi=300)

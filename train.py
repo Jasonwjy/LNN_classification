@@ -17,12 +17,12 @@ print("Using device: ", device)
 
 # ResNet对应的model和criterion
 
-train_epoches = 25
-model = ResNet(in_channels=1)
-model = model.to(device)
-criterion = nn.BCEWithLogitsLoss()
-model_name = 'ResNet'
-input_size = 32
+# train_epoches = 25
+# model = ResNet(in_channels=1)
+# model = model.to(device)
+# criterion = nn.BCEWithLogitsLoss()
+# model_name = 'ResNet'
+# input_size = 32
 
 # ResNet_LTC 对应的model和criterion
 
@@ -33,6 +33,15 @@ input_size = 32
 # model_name = 'ResNet_LTC'
 # input_size = 32
 
+# ResNet_CfC 对应的model和criterion
+
+# train_epoches = 100
+# model = ResNet_CFC(in_channels=1)
+# model = model.to(device)
+# criterion = nn.BCEWithLogitsLoss()
+# model_name = 'ResNet_CFC'
+# input_size = 32
+
 # CNN 对应的model和criterion
 
 # train_epoches = 50
@@ -41,6 +50,17 @@ input_size = 32
 # criterion = nn.CrossEntropyLoss()
 # model_name = 'CNN'
 # input_size = 128
+
+# CNN_LTC 对应的model和criterion
+
+train_epoches = 50
+model = CNN_LTC()
+model = model.to(device)
+criterion = nn.CrossEntropyLoss()
+model_name = 'CNN_LTC'
+input_size = 128
+
+print(f'Using model: {model_name}')
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -59,6 +79,8 @@ data_loader = DataLoader(dataset, batch_size=16, shuffle=True)
 val_set = ImageFolder(root='./data/val', transform=transform)
 val_loader = DataLoader(val_set, batch_size=16, shuffle=True)
 
+print('Data load completed')
+
 train_loss_list = []
 train_acc_list = []
 
@@ -72,20 +94,19 @@ for epoch in range(train_epoches):
     model.train()
     for x, label in tqdm(data_loader, unit='batch', desc='Running epoch {}'.format(epoch)):
         x = x.to(device)
-        if model_name in ['ResNet', 'ResNet_LTC']:
+        if model_name in ['ResNet', 'ResNet_LTC', 'ResNet_CFC']:
             label = label.to(device).to(torch.float)
         else:
             label = label.to(device)
 
         # 前向传播，计算误差
         output = model(x)
-
         loss = criterion(output, label)
         train_loss += loss.item()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        if model_name in ['ResNet', 'ResNet_LTC']:
+        if model_name in ['ResNet', 'ResNet_LTC', 'ResNet_CFC']:
             y_pred = torch.round(torch.sigmoid(output))
         else:
             y_pred = torch.argmax(output.data, 1)
